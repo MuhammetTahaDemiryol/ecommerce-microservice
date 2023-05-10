@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  mongodb:
+    container_name: turkcell2-ecommerce-filterdb
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db/
+
+volumes:
+  mongodb_data:

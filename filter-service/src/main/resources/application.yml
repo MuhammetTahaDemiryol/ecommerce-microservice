@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: filter-service
+  data:
+    mongodb:
+      database: filterdb-ecommerce
+      uri: mongodb://localhost:27017
+
