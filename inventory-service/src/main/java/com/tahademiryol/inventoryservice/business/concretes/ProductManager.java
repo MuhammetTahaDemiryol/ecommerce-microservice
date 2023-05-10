@@ -79,6 +79,7 @@ public class ProductManager implements ProductService {
 
     @Override
     public CreateProductResponse add(CreateProductRequest request) {
+
         return mapper.forResponse().map(repository.save(mapper.forRequest().map(request, Product.class)), CreateProductResponse.class);
     }
 

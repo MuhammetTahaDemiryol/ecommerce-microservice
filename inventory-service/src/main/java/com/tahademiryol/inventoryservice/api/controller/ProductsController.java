@@ -25,7 +25,7 @@ public class ProductsController {
         this.service = service;
     }
 
-    @GetMapping("/{status}")
+    @GetMapping("/getAll/{status}")
     public List<GetAllProductsResponse> getAll(@PathVariable String status) {
         return service.getAll(status);
     }
