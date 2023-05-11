@@ -1,5 +1,7 @@
 package com.tahademiryol.inventoryservice.business.concretes;
 
+import com.tahademiryol.commonpackage.events.ProductCreatedEvent;
+import com.tahademiryol.commonpackage.events.ProductDeletedEvent;
 import com.tahademiryol.commonpackage.utils.mappers.ModelMapperService;
 import com.tahademiryol.inventoryservice.business.abstracts.CategoryService;
 import com.tahademiryol.inventoryservice.business.abstracts.ProductService;
@@ -9,6 +11,7 @@ import com.tahademiryol.inventoryservice.business.dto.request.update.UpdateProdu
 import com.tahademiryol.inventoryservice.business.dto.response.create.CreateProductResponse;
 import com.tahademiryol.inventoryservice.business.dto.response.get.*;
 import com.tahademiryol.inventoryservice.business.dto.response.update.UpdateProductResponse;
+import com.tahademiryol.inventoryservice.business.kafka.InventoryProducer;
 import com.tahademiryol.inventoryservice.entities.Category;
 import com.tahademiryol.inventoryservice.entities.Product;
 import com.tahademiryol.inventoryservice.repository.ProductRepository;
@@ -23,11 +26,13 @@ public class ProductManager implements ProductService {
     private final ProductRepository repository;
     private final ModelMapperService mapper;
     private final CategoryService categoryService;
+    private final InventoryProducer producer;
 
-    public ProductManager(ProductRepository repository, ModelMapperService mapper, CategoryService categoryService) {
+    public ProductManager(ProductRepository repository, ModelMapperService mapper, CategoryService categoryService, InventoryProducer producer) {
         this.repository = repository;
         this.mapper = mapper;
         this.categoryService = categoryService;
+        this.producer = producer;
     }
 
 
@@ -79,8 +84,12 @@ public class ProductManager implements ProductService {
 
     @Override
     public CreateProductResponse add(CreateProductRequest request) {
+        var product = mapper.forRequest().map(request, Product.class);
+        product.setId(UUID.randomUUID());
+        var createdProduct = repository.save(product);
+        sendKafkaProductCreatedEvent(createdProduct);
 
-        return mapper.forResponse().map(repository.save(mapper.forRequest().map(request, Product.class)), CreateProductResponse.class);
+        return mapper.forResponse().map(createdProduct, CreateProductResponse.class);
     }
 
     @Override
@@ -99,6 +108,7 @@ public class ProductManager implements ProductService {
     @Override
     public void delete(UUID id) {
         repository.deleteById(id);
+        sendKafkaProductDeletedEvent(id);
     }
 
     @Override
@@ -107,5 +117,15 @@ public class ProductManager implements ProductService {
         product.setStatus(request.isStatus());
         repository.save(product);
         return mapper.forResponse().map(product, GetProductResponse.class);
+    }
+
+
+    public void sendKafkaProductCreatedEvent(Product createdCar) {
+        var event = mapper.forResponse().map(createdCar, ProductCreatedEvent.class);
+        producer.sendMessage(event);
+    }
+
+    private void sendKafkaProductDeletedEvent(UUID id) {
+        producer.sendMessage(new ProductDeletedEvent(id));
     }
 }

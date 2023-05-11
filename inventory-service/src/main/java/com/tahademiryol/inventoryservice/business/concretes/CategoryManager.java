@@ -1,5 +1,6 @@
 package com.tahademiryol.inventoryservice.business.concretes;
 
+import com.tahademiryol.commonpackage.events.CategoryDeletedEvent;
 import com.tahademiryol.commonpackage.utils.mappers.ModelMapperService;
 import com.tahademiryol.inventoryservice.business.abstracts.CategoryService;
 import com.tahademiryol.inventoryservice.business.dto.request.create.CreateCategoryRequest;
@@ -8,6 +9,7 @@ import com.tahademiryol.inventoryservice.business.dto.response.create.CreateCate
 import com.tahademiryol.inventoryservice.business.dto.response.get.GetAllCategoriesResponse;
 import com.tahademiryol.inventoryservice.business.dto.response.get.GetCategoryResponse;
 import com.tahademiryol.inventoryservice.business.dto.response.update.UpdateCategoryResponse;
+import com.tahademiryol.inventoryservice.business.kafka.InventoryProducer;
 import com.tahademiryol.inventoryservice.entities.Category;
 import com.tahademiryol.inventoryservice.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
@@ -19,10 +21,12 @@ import java.util.UUID;
 public class CategoryManager implements CategoryService {
     private final CategoryRepository repository;
     private final ModelMapperService mapper;
+    private final InventoryProducer producer;
 
-    public CategoryManager(CategoryRepository repository, ModelMapperService mapper) {
+    public CategoryManager(CategoryRepository repository, ModelMapperService mapper, InventoryProducer producer) {
         this.repository = repository;
         this.mapper = mapper;
+        this.producer = producer;
     }
 
 
@@ -56,5 +60,6 @@ public class CategoryManager implements CategoryService {
     @Override
     public void delete(UUID id) {
         repository.deleteById(id);
+        producer.sendCategoryDeleteMessage(new CategoryDeletedEvent(id));
     }
 }

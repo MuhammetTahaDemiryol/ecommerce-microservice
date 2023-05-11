@@ -40,7 +40,7 @@ public class ProductsController {
         return service.getById(id);
     }
 
-    @GetMapping("/with-categories/{id}")
+    @GetMapping("/with-category/{id}")
     public GetProductWithCategoriesResponse getProductWithCategoriesById(@PathVariable UUID id) {
         return service.getProductWithCategoriesById(id);
     }

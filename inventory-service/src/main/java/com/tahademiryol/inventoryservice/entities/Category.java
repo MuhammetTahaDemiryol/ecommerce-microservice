@@ -21,6 +21,6 @@ public class Category {
     private UUID id;
     private String name;
 
-    @ManyToMany(mappedBy = "categories")
+    @ManyToMany(mappedBy = "categories", cascade = CascadeType.ALL, fetch = FetchType.EAGER, targetEntity = Product.class)
     private List<Product> products;
 }
