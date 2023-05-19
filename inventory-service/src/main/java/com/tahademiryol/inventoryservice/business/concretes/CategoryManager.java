@@ -20,13 +20,16 @@ import java.util.UUID;
 @Service
 public class CategoryManager implements CategoryService {
     private final CategoryRepository repository;
+
     private final ModelMapperService mapper;
     private final InventoryProducer producer;
 
-    public CategoryManager(CategoryRepository repository, ModelMapperService mapper, InventoryProducer producer) {
+    public CategoryManager(CategoryRepository repository, ModelMapperService mapper,
+                           InventoryProducer producer) {
         this.repository = repository;
         this.mapper = mapper;
         this.producer = producer;
+
     }
 
 
@@ -62,4 +65,6 @@ public class CategoryManager implements CategoryService {
         repository.deleteById(id);
         producer.sendCategoryDeleteMessage(new CategoryDeletedEvent(id));
     }
+
+
 }

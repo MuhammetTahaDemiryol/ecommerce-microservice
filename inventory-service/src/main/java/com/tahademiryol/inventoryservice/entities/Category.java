@@ -1,5 +1,6 @@
 package com.tahademiryol.inventoryservice.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,6 +22,7 @@ public class Category {
     private UUID id;
     private String name;
 
-    @ManyToMany(mappedBy = "categories", cascade = CascadeType.ALL, fetch = FetchType.EAGER, targetEntity = Product.class)
+    @JsonIgnore
+    @ManyToMany(mappedBy = "productCategories")
     private List<Product> products;
 }

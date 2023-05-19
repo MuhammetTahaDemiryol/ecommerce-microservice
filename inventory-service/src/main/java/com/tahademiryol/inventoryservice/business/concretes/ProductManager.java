@@ -54,7 +54,7 @@ public class ProductManager implements ProductService {
                 .filter(product -> product.isStatus() == Boolean.parseBoolean(Status))
                 .map(product -> {
                     List<GetAllCategoriesResponse> getAllCategoriesResponse =
-                            product.getCategories().stream()
+                            product.getProductCategories().stream()
                                     .map(category -> mapper.forResponse().map(category, GetAllCategoriesResponse.class))
                                     .collect(Collectors.toList());
                     GetAllProductsWithCategoriesResponse getAllProductsWithCategoriesResponse1 =
@@ -74,7 +74,7 @@ public class ProductManager implements ProductService {
     public GetProductWithCategoriesResponse getProductWithCategoriesById(UUID id) {
         Product product = repository.findById(id).orElseThrow();
         List<GetAllCategoriesResponse> productWithCategoriesResponses =
-                product.getCategories()
+                product.getProductCategories()
                         .stream()
                         .map(category -> mapper.forResponse().map(category, GetAllCategoriesResponse.class)).toList();
         GetProductWithCategoriesResponse response = mapper.forResponse().map(product, GetProductWithCategoriesResponse.class);
@@ -85,7 +85,9 @@ public class ProductManager implements ProductService {
     @Override
     public CreateProductResponse add(CreateProductRequest request) {
         var product = mapper.forRequest().map(request, Product.class);
+        product.setProductCategories(List.of(mapper.forResponse().map(categoryService.getById(request.getCategoryId()), Category.class)));
         product.setId(UUID.randomUUID());
+
         var createdProduct = repository.save(product);
         sendKafkaProductCreatedEvent(createdProduct);
 
@@ -100,7 +102,7 @@ public class ProductManager implements ProductService {
         product.setName(request.getName());
         product.setStockQuantity(request.getStockQuantity());
         product.setUnitPrice(request.getUnitPrice());
-        product.getCategories().add(category);
+        product.getProductCategories().add(category);
         repository.save(product);
         return mapper.forResponse().map(product, UpdateProductResponse.class);
     }
